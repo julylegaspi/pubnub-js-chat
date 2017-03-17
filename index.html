@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Chat</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.0/css/bulma.min.css">
+  <style>
+  body{padding-top: 40px;}
+  #msg{
+    overflow: auto;
+    width: 100%;
+    height: 400px;
+    border: 1px solid black;
+    padding: 5px;
+  }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="columns">
+      <div class="column is-half is-offset-one-quarter">
+        <div class="field">
+          <label class="label">Connect as:</label>
+          <p class="control">
+            <input class="input" type="text" placeholder="username" id="username" onblur="checkUsername()">
+          </p>
+        </div>
+        <div class="field">
+          <div id="msg"></div>
+        </div>
+        <div class="field">
+          <label class="label">Enter message and press enter</label>
+          <p class="control">
+            <input class="input" type="text" placeholder="Type here..." id="input">
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.4.0.11.min.js"></script>
+  <script>
+    (function(){
+          var pubnub = new PubNub({ publishKey : 'pub-c-d5ff0cdf-9b5e-4f8e-9c9a-c7d6588195ba', subscribeKey : 'sub-c-39ce116c-09e2-11e7-930d-02ee2ddab7fe' });
+          function _(id) { return document.getElementById(id); }
+          var user = _('username'), msg = _('msg'), input = _('input'), channel = 'chat';
+          pubnub.addListener({
+              message: function(obj) {
+                  msg.innerHTML = (obj.message.username+': '+obj.message.message).replace( /[<>]/g, '' ) + '<br>' + msg.innerHTML
+              }});
+          pubnub.subscribe({channels:[channel]});
+          input.addEventListener('keyup', function(e) {
+              if ((e.keyCode || e.charCode) === 13) {
+                pubnub.publish({channel : channel, message : {"username": user.value, "message":input.value} , x : (input.value='')});
+            }
+          });
+    })();
+    function checkUsername() {
+      var u = document.getElementById('username').value;
+      if (u == "") {
+        document.getElementById('username').focus();
+      }
+    }
+  </script>
+</body>
+</html>
+
+
